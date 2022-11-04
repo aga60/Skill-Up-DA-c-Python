@@ -3,7 +3,7 @@ from datetime import datetime
 
 # ahora tiene una funcion
 # y la definición de un DAG
-# y corre, pero no hay tareas
+# y corre, pero realiza tareas?
 
 def print_hello():
     print('Hello World!')
