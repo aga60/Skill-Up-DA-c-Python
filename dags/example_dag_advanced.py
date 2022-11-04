@@ -102,7 +102,8 @@ def _get_activity(day_name) -> str:
     max_active_runs=1,
     # This defines how often your DAG will run, or the schedule by which DAG runs are created. It can be
     # defined as a cron expression or custom timetable. This DAG will run daily.
-    schedule_interval="@daily",
+    #schedule_interval="@daily",
+    schedule="@daily",
     # Default settings applied to all tasks within the DAG; can be overwritten at the task level.
     default_args={
         "owner": "community", # This defines the value of the "owner" column in the DAG view of the Airflow UI
@@ -128,7 +129,8 @@ def example_dag_advanced():
         week_day={WeekDay.SATURDAY, WeekDay.SUNDAY}, # This checks day of week
         follow_task_ids_if_true="weekend", # Next task if criteria is met
         follow_task_ids_if_false="weekday", # Next task if criteria is not met
-        use_task_execution_day=True, # If True, uses task’s execution day to compare with is_today
+        #use_task_execution_day=True, # If True, uses task’s execution day to compare with is_today
+        use_task_logical_date=True, # If True, uses task’s execution day to compare with is_today
     )
 
     weekend = EmptyOperator(task_id="weekend") # "weekend" placeholder task
