@@ -1,20 +1,26 @@
 from airflow import DAG
 from datetime import datetime
+from airflow.operators.python import PythonOperator
 
 # ahora tiene una funcion
 # y la definición de un DAG
 # y corre, pero realiza tareas?
 
-def print_hello():
+def function_task_1():
     print('Hello World!')
 
 # forma alternativa al WITH DAG
 dag = DAG(
-dag_id="otro_dag_de_prueba1",
+dag_id="otro_dag_de_prueba2",
 start_date=datetime.now(),
 schedule=None
 )
 
+task1 = PythonOperator(
+    task_id="task_1", # debe ser único dentro del dag
+    python_callable=function_task_1, # función que se ejecutará
+    dag=dag # se identifica el dag al cual pertenece esta tarea
+    )
 
 # with DAG(
 #     dag_id="mi_primer_dag",
