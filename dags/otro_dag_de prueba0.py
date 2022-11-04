@@ -1,5 +1,7 @@
 from airflow import DAG
 from datetime import datetime
+# solo comentarios, no hace nada
+# en realidad no es un DAG
 
     # with DAG(
     #     dag_id="mi_primer_dag",
