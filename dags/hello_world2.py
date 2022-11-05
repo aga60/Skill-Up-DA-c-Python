@@ -7,6 +7,7 @@ def print_hello():
     print('Hello World!')
 
 dag = DAG('hello_world2', description='Hola Mundo DAG',
+	tags=['example'],
         schedule='* * * * *',
         # schedule_interval='* * * * *',   # deprecated
         start_date=datetime(2021, 10, 20),
