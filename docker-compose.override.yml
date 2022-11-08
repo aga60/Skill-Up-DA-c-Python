@@ -1,0 +1,5 @@
+version: "3.1"
+services:
+  scheduler:
+    volumes:
+      - D:/Alkemy2/Skill-Up-DA-c-Python/files:/usr/local/airflow/files:rw
