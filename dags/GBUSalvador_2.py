@@ -19,68 +19,62 @@ El DAG se debe ejecutar cada 1 hora, todos los dias y cada tarea se debe ejecuta
 # Dev: Aldo Agunin
 # Fecha: 05/11/2022
 """
-
-from airflow import DAG
 from datetime import datetime, timedelta
-from airflow.operators.python import PythonOperator
-from airflow.operators.empty import EmptyOperator
-
+from airflow.decorators import dag, task # DAG and task decorators for interfacing with the TaskFlow API
 
 # ------- DECLARACIONES -----------
-universidad_corto = "USalvador"
-universidad_largo = "Universidad del Salvador"
+universidad_corto = 'USalvador'
+universidad_largo = 'Universidad del Salvador'
 
-# def function_task_1():
-#     print('Hello World!')
-
-# forma alternativa al WITH DAG
-# PENDIENTE Hacerlo con Taskflow (decoradores)
-# https://airflow.apache.org/docs/apache-airflow/stable/tutorial_taskflow_api.html
-dag = DAG(
-    dag_id=f"GB{universidad_corto}_2",   # dag_id="GBUSalvador_2",
-    description=f"DAG para hacer ETL de la {universidad_largo}",
+@dag(
+    dag_id=f'GB{universidad_corto}',  # dag_id='GBUSalvador',
+    description=f'DAG para hacer ETL de la {universidad_largo}',
     tags=['Aldo', 'ETL'],
     start_date=datetime(2022, 11, 1),
     schedule=timedelta(hours=1),  # cada hora
     catchup=False,
     default_args={
-        "retries": 5, # If a task fails, it will retry 5 times.
-        "retry_delay": timedelta(minutes=5),
+        'retries': 5,  # If a task fails, it will retry 5 times.
+        'retry_delay': timedelta(minutes=5),
         },
-    )
+)
+def GBUSalvador():
+    """
+    ### DAG ETL para la USalvador
+    For more information on Airflow's TaskFlow API, reference documentation here:
+    https://airflow.apache.org/docs/apache-airflow/stable/tutorial_taskflow_api.html
+    """
+    @task()
+    def extract():
+        """
+        #### Extract task
+        Los datos se obtendran con un PostgresHook que ejecute
+        una consulta sql y guarde los resultados en un archivo csv.
+        """
+        return archivo_csv
+
+    @task()
+    def transform(archivo_csv):
+        """
+        #### Transform task
+        El archivo csv obtenido en la Extraccion se procesara
+        usando pandas con un PythonOperator que genere una salida txt.
+        """
+        return archivo_txt
+
+    @task()
+    def load(archivo_txt):
+        """
+        #### Load task
+        El archivo txt obtenido en la Transformacion será subido a un
+        repositorio S3 por medio de un operador desarrollado por la comunidad.
+        """
+        return
 
 
-# task1 = EmptyOperator(
-#     task_id="task_1", # debe ser único dentro del dag
-#     dag=dag # dag al que pertenece esta tarea
-#     )
+    archivo_csv = extract()
+    archivo_txt = transform(archivo_csv)
+    load(archivo_txt)
 
-# task1 = PythonOperator(
-#     task_id="task_1", # debe ser único dentro del dag
-#     python_callable=function_task_1, # función que se ejecutará
-#     dag=dag # dag al que pertenece esta tarea
-#     )
-
-# primera tarea: correr script .SQL y la salida a .CSV
-# se usara un PythonOperator que ejecute la consulta .SQL de la Story1 y genere salida a .CSV
-extract = EmptyOperator(
-    task_id="extraction_task",
-    dag=dag
-    )
-
-# segunda tarea: procesar datos en pandas
-# se usara un PythonOperator
-transform = EmptyOperator(
-    task_id="transformation_task",
-    dag=dag
-    )
-
-# tercera tarea: subir resultados a amazon s3
-# se usara un PythonOperator
-load = EmptyOperator(
-    task_id="load_task",
-    dag=dag
-    )
-
-extract >> transform >> load
+GBUSalvador = GBUSalvador()
 
