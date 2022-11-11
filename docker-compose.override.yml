@@ -2,4 +2,11 @@ version: "3.1"
 services:
   scheduler:
     volumes:
-      - D:/Alkemy2/Skill-Up-DA-c-Python/files:/usr/local/airflow/files:rw
+      - D:\Alkemy2\SKU/files:/usr/local/airflow/files:rw
+      - D:\Alkemy2\SKU/dags/logs:/usr/local/airflow/mylogs:rw
+      - D:\Alkemy2\SKU/dags:/usr/local/airflow/dags:rw
+  webserver:
+    volumes:
+      - D:\Alkemy2\SKU/files:/usr/local/airflow/files:rw
+      - D:\Alkemy2\SKU/dags/logs:/usr/local/airflow/mylogs:rw
+      - D:\Alkemy2\SKU/dags:/usr/local/airflow/dags:rw
