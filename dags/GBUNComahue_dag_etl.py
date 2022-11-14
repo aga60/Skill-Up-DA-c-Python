@@ -1,20 +1,33 @@
 """
-Story 5
-## Grupo de Universidades B
-## UNComahue
-
+Story 6
 COMO: Analista de datos
-QUIERO: Implementar el Python Operator para Transformación
-PARA: procesar los datos obtenidos de la base de datos dentro del DAG
+QUIERO: Crear una función Python con Pandas para cada universidad
+PARA: poder normalizar los datos de las mismas
 
 Criterios de aceptación: 
-Configurar el Python Operator para que ejecute las dos funciones que procese 
-los datos para las siguientes universidades:
+Una funcion que devuelva un txt para cada una de las siguientes 
+universidades con los datos normalizados:
 - Univ. Nacional Del Comahue
 - Universidad Del Salvador
 
-Documentación
-https://airflow.apache.org/docs/apache-airflow/stable/_api/airflow/operators/python/index.html#module-airflow.operators.python"
+Datos Finales:
+- university: str minúsculas, sin espacios extras, ni guiones
+- career: str minúsculas, sin espacios extras, ni guiones
+- inscription_date: str %Y-%m-%d format
+- first_name: str minúscula y sin espacios, ni guiones
+- last_name: str minúscula y sin espacios, ni guiones
+- gender: str choice(male, female)
+- age: int
+- postal_code: str
+- location: str minúscula sin espacios extras, ni guiones
+- email: str minúsculas, sin espacios extras, ni guiones
+
+Aclaraciones:
+Para calcular codigo postal o locación se va a utilizar el .csv que se encuentra en el repo.
+La edad se debe calcular en todos los casos, resolver con criterio propio las fechas de nacimiento
+ que no considere lógicas para inscribirse en la universidad. 
+Resolver en caso de que suceda la transformación de dos dígitos del año.
+En el caso de no contar con los datos de first_name y last_name por separado, colocar todo en last_name.
 
 # Dev: Aldo Agunin
 # Fecha: 11/11/2022
@@ -29,7 +42,7 @@ from pathlib import Path
 import logging
 import logging.config
 import pandas as pd
-from plugins.callables import csv_a_txt
+from plugins.GBcallables import csv_a_txt
 
 # ------- DECLARACIONES -----------
 universidad_corto = 'UNComahue'
