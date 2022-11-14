@@ -194,7 +194,7 @@ def csv_a_txt(universidad_corto):
     df.drop('_diff_hoy_ins', axis=1, inplace=True)
     df.drop('_age_ins_1', axis=1, inplace=True)
     df.drop('_age_ins_2', axis=1, inplace=True)
-    df.drop('location_x', axis=1, inplace=True)
+    #df.drop('location_x', axis=1, inplace=True)
 
     # Ubicacion del .txt FINAL
     txt_path = Path.cwd() / 'datasets' / ('GB' + universidad_corto + '_process.txt')
