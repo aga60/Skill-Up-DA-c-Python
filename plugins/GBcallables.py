@@ -216,11 +216,4 @@ if __name__ == '__main__':
     # ----- datos a csv --------
     #datos_a_csv_2()
     csv_a_txt(universidad_corto)
-    
-    #transform_dataset(input_path = 'files/GGFLCienciasSociales_select.csv',
-    #                    output_path = 'datasets/GGFLCienciasSociales_process.txt',
-    #                    date_format='%d-%m-%Y')
 
-    #transform_dataset(input_path = 'files/GGUKennedy_select.csv',
-    #                    output_path = 'datasets/GGUKennedy_process.txt',
-    #                    date_format='%y-%b-%d')

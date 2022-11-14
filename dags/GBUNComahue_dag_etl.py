@@ -32,7 +32,6 @@ En el caso de no contar con los datos de first_name y last_name por separado, co
 # Dev: Aldo Agunin
 # Fecha: 11/11/2022
 """
-
 from airflow import DAG
 from datetime import datetime, timedelta
 from airflow.operators.empty import EmptyOperator
