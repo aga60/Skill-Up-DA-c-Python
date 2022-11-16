@@ -4,7 +4,7 @@ GBfunciones.py: funciones que se llaman desde los dags
 ## Grupo de Universidades B
 
 # Dev: Aldo Agunin
-# Fecha: 14/11/2022
+# Fecha: 15/11/2022
 """
 # from airflow.providers.postgres.hooks.postgres import PostgresHook
 from pathlib import Path
