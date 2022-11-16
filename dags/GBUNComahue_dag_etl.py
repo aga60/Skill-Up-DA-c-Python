@@ -1,5 +1,8 @@
 """
 Story 6
+## Grupo de Universidades B
+## UNComahue
+
 COMO: Analista de datos
 QUIERO: Crear una función Python con Pandas para cada universidad
 PARA: poder normalizar los datos de las mismas
@@ -41,37 +44,72 @@ from pathlib import Path
 import logging
 import logging.config
 import pandas as pd
-from plugins.GBcallables import csv_a_txt
+#from plugins.GBfunciones import csv_a_txt
+from plugins.GBtransform import csv_a_txt
 
 # ------- DECLARACIONES -----------
 universidad_corto = 'UNComahue'
 universidad_largo = 'Universidad Nacional del Comahue'
 
-# ------- LOGGER ------------------
-log_cfg = ('GB' + universidad_corto + '_log.cfg')
-configfile = Path(__file__).parent.parent / 'plugins' / log_cfg
-logging.config.fileConfig(configfile, disable_existing_loggers=False)
-logger = logging.getLogger(__name__)
+#root_path = Path(__file__).parent.parent
+root_path = Path.cwd()
+## Ubicacion de .sql
+sql_path = root_path / 'include'
+sql_file = sql_path / ('GB' + universidad_corto + '.sql')
+## Ubicacion de .csv
+csv_path = root_path / 'files'
+csv_file = csv_path / ('GB' + universidad_corto + '_select.csv')
+## Ubicación de.txt
+txt_path = root_path / 'datasets'
+txt_file = txt_path / ('GB' + universidad_corto + '_process.txt')
 
-#---------------  extraccion  --------------
-def datos_a_csv():
-    logger.info('*** Comenzando Extracción ***')
-    ## Ubicacion del .sql
-    sql_path = Path(__file__).parent.parent / 'include' / ('GB' + universidad_corto + '.sql')
+# ------- LOGGER ------------------
+def configure_logger():
+    logger_name = 'GB' + universidad_corto + '_dag_etl'
+    logger_cfg = Path.cwd() / 'plugins' / 'GB_logger.cfg'
+    logging.config.fileConfig(logger_cfg)
+    # Set up logger
+    logger = logging.getLogger(logger_name)
+    return logger
+
+# ---------------  extraccion  --------------
+def extract_task():
+    """ extrae datos de la base training y los guarda en un archivo csv """
+    logger = configure_logger()
+    logger.info('*** Comenzando Extraccion ***')
+
+    root_path = Path(__file__).parent.parent
+    ## Ubicacion de .sql
+    sql_path = root_path / 'include'
+    sql_file = sql_path / ('GB' + universidad_corto + '.sql')
+    ## Ubicacion de .csv
+    csv_path = root_path / 'files'
+    csv_file = csv_path / ('GB' + universidad_corto + '_select.csv')
+
     ## Leo el .sql
-    sql_consulta = open(sql_path, 'r').read()
+    sql_consulta = open(sql_file, 'r').read()
     ## Conexion a la base
     hook = PostgresHook(postgres_conn_id='alkemy_db')
     conexion = hook.get_conn()
     df = pd.read_sql(sql_consulta, conexion)
     ## Guardo .csv
-    csv_path = Path.cwd() / 'files' / ('GB' + universidad_corto + '_select.csv')
-    df.to_csv(csv_path, index=False)
+    df.to_csv(csv_file, index=False)
+    
     logger.info('*** Fin Extraccion ***')
+    return
+# ---------------  transformacion  --------------
+def transform_task():
+    """ transforma los datos del csv y los guarda en un archivo txt """
+    logger = configure_logger()
+    logger.info('*** Comenzando Transformacion ***')
+    
+    csv_a_txt(universidad_corto, csv_file, txt_file)
+    
+    logger.info('*** Fin Transformacion ***')
     return
 #------------------------------------------
 
-dag = DAG(
+with DAG(
     dag_id=f'GB{universidad_corto}_dag_etl',   # dag_id='GBUNComahue_dag_etl',
     description=f'DAG para hacer ETL de la {universidad_largo}',
     tags=['Aldo', 'ETL'],
@@ -81,38 +119,29 @@ dag = DAG(
     default_args={
         'retries': 5, # If a task fails, it will retry 5 times.
         'retry_delay': timedelta(minutes=5),
-        },
-    )
+        }, ) as dag:
 
-# primera tarea: correr script .SQL y la salida a .CSV
-# se usara un PythonOperator que ejecute la consulta .SQL de la Story1 y genere salida a .CSV
-# extract = EmptyOperator(
-#     task_id="extraction_task",
-#     dag=dag
-#     )
-extract = PythonOperator(
-        task_id='extraction_task',
-        python_callable=datos_a_csv,
-        dag=dag,
-    )
+    # primera tarea: correr script .SQL y la salida a .CSV
+    # se usara un PythonOperator que ejecute la consulta .SQL de la Story1 y genere salida a .CSV
+    # extract = EmptyOperator(
+    #     task_id="Extract",
+    #     dag=dag
+    #     )
+    extract = PythonOperator(task_id='Extract', python_callable=extract_task)
 
-# segunda tarea: procesar datos en pandas
-# se usara un PythonOperator que llame a un modulo externo
-# transform = EmptyOperator(
-#     task_id="transformation_task",
-#     dag=dag
-#     )
-transform = PythonOperator(
-        task_id='transformation_task',
-        python_callable=csv_a_txt,
-        dag=dag,
-    )
+    # segunda tarea: procesar datos en pandas
+    # se usara un PythonOperator que llame a un modulo externo
+    # transform = EmptyOperator(
+    #     task_id="Transform",
+    #     dag=dag
+    #     )
+    transform = PythonOperator(task_id='Transform', python_callable=transform_task)
 
-# tercera tarea: subir resultados a amazon s3
-# se usara un operador desarrollado por la comunidad
-load = EmptyOperator(
-    task_id="load_task",
-    dag=dag
-    )
+    # tercera tarea: subir resultados a amazon s3
+    # se usara un operador desarrollado por la comunidad
+    load = EmptyOperator(
+        task_id="Load",
+        dag=dag
+        )
 
-extract >> transform >> load
+    extract >> transform >> load
