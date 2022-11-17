@@ -6,9 +6,11 @@ services:
       - D:\Alkemy2\SKU/dags/logs:/usr/local/airflow/mylogs:rw
       - D:\Alkemy2\SKU/dags:/usr/local/airflow/dags:rw
       - D:\Alkemy2\SKU/datasets:/usr/local/airflow/datasets:rw
+      - D:\Alkemy2\SKU/notebooks:/usr/local/airflow/notebooks:rw
   webserver:
     volumes:
       - D:\Alkemy2\SKU/files:/usr/local/airflow/files:rw
       - D:\Alkemy2\SKU/dags/logs:/usr/local/airflow/mylogs:rw
       - D:\Alkemy2\SKU/dags:/usr/local/airflow/dags:rw
       - D:\Alkemy2\SKU/datasets:/usr/local/airflow/datasets:rw
+      - D:\Alkemy2\SKU/notebooks:/usr/local/airflow/notebooks:rw

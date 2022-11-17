@@ -1,0 +1,10 @@
+matplotlib
+seaborn
+ipykernel
+python-decouple==3.6
+apache-airflow-providers-postgres==5.2.2
+apache-airflow[amazon]
+pandas==1.5.0
+SQLAlchemy==1.4.41
+Jinja2
+PyYAML
