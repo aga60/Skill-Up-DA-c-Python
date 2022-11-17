@@ -1,36 +1,17 @@
 """
-Story 6
+Story 7
 ## Grupo de Universidades B
 ## USalvador
 
 COMO: Analista de datos
-QUIERO: Crear una función Python con Pandas para cada universidad
-PARA: poder normalizar los datos de las mismas
+QUIERO: Utilizar un operador creado por la comunidad
+PARA: poder subir el txt creado por el operador de Python al S3
 
 Criterios de aceptación: 
-Una funcion que devuelva un txt para cada una de las siguientes 
-universidades con los datos normalizados:
-- Univ. Nacional Del Comahue
-- Universidad Del Salvador
-
-Datos Finales:
-- university: str minúsculas, sin espacios extras, ni guiones
-- career: str minúsculas, sin espacios extras, ni guiones
-- inscription_date: str %Y-%m-%d format
-- first_name: str minúscula y sin espacios, ni guiones
-- last_name: str minúscula y sin espacios, ni guiones
-- gender: str choice(male, female)
-- age: int
-- postal_code: str
-- location: str minúscula sin espacios extras, ni guiones
-- email: str minúsculas, sin espacios extras, ni guiones
-
-Aclaraciones:
-Para calcular codigo postal o locación se va a utilizar el .csv que se encuentra en el repo.
-La edad se debe calcular en todos los casos, resolver con criterio propio las fechas de nacimiento
- que no considere lógicas para inscribirse en la universidad. 
-Resolver en caso de que suceda la transformación de dos dígitos del año.
-En el caso de no contar con los datos de first_name y last_name por separado, colocar todo en last_name.
+- Tomar el .txt del repositorio base 
+- Buscar un operador creado por la comunidad que se adecue a los datos.
+- Configurar el S3 Operator para la Univ. del Salvador
+- Subir el archivo a S3
 
 # Dev: Aldo Agunin
 # Fecha: 15/11/2022
@@ -40,6 +21,7 @@ from datetime import datetime, timedelta
 from airflow.operators.empty import EmptyOperator
 from airflow.operators.python import PythonOperator
 from airflow.providers.postgres.hooks.postgres import PostgresHook
+from airflow.providers.amazon.aws.hooks.s3 import S3Hook
 from pathlib import Path
 import logging
 import logging.config
@@ -100,15 +82,43 @@ def extract_task():
 # ---------------  transformacion  --------------
 def transform_task():
     """ transforma los datos del csv y los guarda en un archivo txt """
-    # el logging lo hago en csv_a_txt
+    logger = configure_logger()
+    logger.info('*** Comenzando Transformacion ***')
     
-    csv_a_txt(universidad_corto, csv_file, txt_file)
+    csv_a_txt(univ=universidad_corto, in_file=csv_file, out_file=txt_file)
     
+    logger.info('*** Fin Transformacion ***')
     return
-#------------------------------------------
+#---------------- carga ----------------------
+def load_task():
+    """ carga el txt en un el bucket S3 """
+
+    logger = configure_logger()
+    logger.info('*** Comenzando Load ***')
+    
+    s3_hook = S3Hook(aws_conn_id='aws_s3_bucket')
+    bucket_name = 'alkemy-gb'
+    local_basepath = Path(__file__).resolve().parent.parent
+	#root_path = Path(__file__).parent.parent
+	#root_path = Path.cwd()
+	#logger.info(local_basepath)
+    # Upload to S3
+    txt_path = local_basepath / 'datasets/GBUSalvador_process.txt'
+	## Ubicación de.txt
+    #txt_path = root_path / 'datasets'
+    #txt_name = ('GB' + universidad_corto + '_process.txt')
+    #txt_file = txt_path / txt_name
+    #logger.info(txt_file)
+    s3_hook.load_file(txt_file,
+        bucket_name=bucket_name,
+        replace=True,
+        key='process/GBUSalvador_process.txt')
+
+    logger.info('*** Fin Load  ***')
+
 
 with DAG(
-    dag_id=f'GB{universidad_corto}_dag_etl',   # dag_id='GBUSalvador_dag_etl',
+    dag_id=f'GB{universidad_corto}_dag_etl',   # dag_id='GBUNComahue_dag_etl',
     description=f'DAG para hacer ETL de la {universidad_largo}',
     tags=['Aldo', 'ETL'],
     start_date=datetime(2022, 11, 1),
@@ -137,9 +147,11 @@ with DAG(
 
     # tercera tarea: subir resultados a amazon s3
     # se usara un operador desarrollado por la comunidad
-    load = EmptyOperator(
-        task_id="Load",
-        dag=dag
-        )
+    # load = EmptyOperator(
+    #     task_id="Load",
+    #     dag=dag
+    #     )
+    load = PythonOperator(task_id='Load', python_callable=load_task)
 
     extract >> transform >> load
+    

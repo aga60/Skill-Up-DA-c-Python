@@ -14,18 +14,18 @@ import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta, date
 # ------- DECLARACIONES -----------
-#universidad_corto = 'UNComahue'
-#universidad_corto = 'USalvador'
+#univ = 'UNComahue'
+#univ = 'USalvador'
 
 # def configure_logger():
-#     logger_name = 'GB' + universidad_corto + '_dag_etl'
+#     logger_name = 'GB' + univ + '_dag_etl'
 #     logger_cfg = Path.cwd() / 'plugins' / 'GB_logger.cfg'
 #     logging.config.fileConfig(logger_cfg)
 #     # Set up logger
 #     logger = logging.getLogger(logger_name)
 #     return logger
 
-# # def datos_a_csv_prueba(universidad_corto, sql_file, csv_file):
+# # def datos_a_csv_prueba(univ, sql_file, csv_file):
 #     """
 #     Extraccion: solo esta para probar, la que se usa esta en el dag
 #     lee datos de la BD, escribe en un csv
@@ -65,10 +65,10 @@ def eliminar_abreviaturas(columna):
 
 def normalizar_fecha(columna):
     """ convierte fechas a str %Y-%m-%d format """
-    if universidad_corto == 'UNComahue':
+    if univ == 'UNComahue':
         # las fechas de UNComahue ya vienen en formato %Y-%m-%d
         columna = pd.to_datetime(columna)
-    elif universidad_corto == 'USalvador':
+    elif univ == 'USalvador':
         # USalvador tiene fechas en formato dd-Mon-yy
         columna = pd.to_datetime(columna).dt.strftime('%Y-%m-%d')
     return columna
@@ -104,7 +104,7 @@ def reindexardf():
     )
     return
 
-def csv_a_txt(universidad_corto, csv_file, txt_file):
+def csv_a_txt(univ, in_file, out_file):
     """
     Transformacion: recibe csv, limpia, entrega txt
     """
@@ -115,7 +115,7 @@ def csv_a_txt(universidad_corto, csv_file, txt_file):
     # Leo el .csv
     # # necesito forzar el tipo de cada columna
     df = pd.read_csv(
-        csv_file,
+        in_file,
         dtype={
             'university': str,
             'career': str,
@@ -182,7 +182,7 @@ def csv_a_txt(universidad_corto, csv_file, txt_file):
     df_location['location'] = normalizar_string(df_location['location'])
 
     # para UNComahue tengo postal_code, para USalvador tengo location
-    if universidad_corto == 'UNComahue':
+    if univ == 'UNComahue':
         # a) postal_code: ya lo tengo
         
         # b) location: la tengo que obtener de la tabla codigos_postales
@@ -192,7 +192,7 @@ def csv_a_txt(universidad_corto, csv_file, txt_file):
         # hago un LEFT JOIN de df y df_location
         df = pd.merge(df, df_location, on='postal_code', how='left')
 
-    elif universidad_corto == 'USalvador':
+    elif univ == 'USalvador':
         # a) location: ya la tengo
         
         # b) postal_code:  lo tengo que obtener de la tabla codigos_postales
@@ -226,7 +226,7 @@ def csv_a_txt(universidad_corto, csv_file, txt_file):
     df['_age_ins_0'] = (doi-dob) / np.timedelta64(1, 'Y')
     age_0_mean = df['_age_ins_0'].mean()
     
-    if universidad_corto == 'UNComahue':
+    if univ == 'UNComahue':
         # alternativa 1: en caso de que edad < 15 la reemplazo por NaN.
         df['_age_ins_1'] = df['_age_ins_0']
         df.loc[df['_age_ins_1'] < 15, ['_age_ins_1']]= np.NaN
@@ -241,7 +241,7 @@ def csv_a_txt(universidad_corto, csv_file, txt_file):
         # y convierto a int
         df['age'] = df['_age_ins_2'].astype(int)
 
-    elif universidad_corto == 'USalvador':
+    elif univ == 'USalvador':
         # USalvador tiene fechas en formato dd-Mon-yy
         # y en la conversion a algunos años de nacimiento se les asigno un prefijo 20
         # con lo que la edad al momento de inscribirse es < de 15.
@@ -263,9 +263,9 @@ def csv_a_txt(universidad_corto, csv_file, txt_file):
     # txt AUXILIAR para guardar las columnas no requeridas 
     # que uso en el proceso de limpieza de los datos extraidos
     # Ubicacion del .txt AUXILIAR
-    #aux_file = Path(__file__).parent.parent / 'notebooks' / ('GB' + universidad_corto + '_AUXILIAR.txt')
+    #aux_file = Path(__file__).parent.parent / 'notebooks' / ('GB' + univ + '_AUXILIAR.txt')
     aux_path = Path(__file__).parent.parent / 'notebooks'
-    aux_file = aux_path / ('GB' + universidad_corto + '_AUXILIAR.txt')
+    aux_file = aux_path / ('GB' + univ + '_AUXILIAR.txt')
         
     # Escribo el .txt AUXILIAR
     df.to_csv(aux_file)
@@ -277,11 +277,11 @@ def csv_a_txt(universidad_corto, csv_file, txt_file):
     df.drop('_age_ins_2', axis=1, inplace=True)
 
     # Escribo el .txt FINAL
-    df.to_csv(txt_file, index=False)
+    df.to_csv(in_file, index=False)
     logger.info('*** Fin Transformacion ***')
     return
 #------------------------------------------
 
 if __name__ == '__main__':
-    datos_a_csv(universidad_corto, sql_file, csv_file)
-    csv_a_txt(universidad_corto, csv_file, txt_file)
+    #datos_a_csv(univ, sql_file, csv_file)
+    csv_a_txt(univ, in_file, out_file)

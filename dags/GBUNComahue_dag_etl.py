@@ -21,6 +21,7 @@ from datetime import datetime, timedelta
 from airflow.operators.empty import EmptyOperator
 from airflow.operators.python import PythonOperator
 from airflow.providers.postgres.hooks.postgres import PostgresHook
+from airflow.providers.amazon.aws.hooks.s3 import S3Hook
 from pathlib import Path
 import logging
 import logging.config
@@ -84,12 +85,11 @@ def transform_task():
     logger = configure_logger()
     logger.info('*** Comenzando Transformacion ***')
     
-    csv_a_txt(universidad_corto, csv_file, txt_file)
+    csv_a_txt(univ=universidad_corto, in_file=csv_file, out_file=txt_file)
     
     logger.info('*** Fin Transformacion ***')
     return
 #---------------- carga ----------------------
-
 def load_task():
     """ carga el txt en un el bucket S3 """
 
@@ -112,9 +112,9 @@ def load_task():
     s3_hook.load_file(txt_file,
         bucket_name=bucket_name,
         replace=True,
-        key='process/GBUNComahue.txt')
+        key='process/GBUNComahue_process.txt')
 
-    logger.info('*** Fin Load GBUNComahue ***')
+    logger.info('*** Fin Load  ***')
 
 
 with DAG(
